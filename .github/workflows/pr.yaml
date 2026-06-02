@@ -21,8 +21,8 @@ jobs:
       working-directory: src/store-front
 
     - name: zip build output
-      run: zip -r dist.zip src/store-front/dist
-      working-directory: src/store-front
+      run: zip -r dist.zip src/store-front/dist/
+      
     
     - name: upload artifact
       uses: actions/upload-artifact@v4

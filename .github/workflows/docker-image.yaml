@@ -1,0 +1,38 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: docker build . --file src/product-service/Dockerfile --tag my-image-name:latest
+    - name: Manual Trivy Setup
+      uses: aquasecurity/setup-trivy@v0.2.0
+      with:
+        cache: true
+        version: v0.65.0
+    - name: Run Trivy vulnerability scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: my-image-name:latest # Or other scan targets like 'fs', 'repo'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    - name: Run Terraform to proovision infra
+      run: |
+        cd infra/terraform
+        terraform init
+        terraform apply -var-file='st.tfvars' -auto-approve
+    - name: deploy into k8s
+      run: |
+        kubectl apply -f aks-store-all-in-one.yaml
+
+      
+    
